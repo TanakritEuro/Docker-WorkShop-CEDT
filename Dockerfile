@@ -27,9 +27,13 @@ FROM node:20.11-slim
 
 WORKDIR /app
 
-# The app is started with plain `node`, so drop the package managers bundled in the
-# base image: smaller image and fewer packages for Trivy to flag.
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+# Apply Debian security updates: the 20.11-slim base (Debian 12.5) ships old
+# libgnutls30 / perl-base builds with CRITICAL CVEs that Debian has since fixed.
+# The app is started with plain `node`, so also drop the bundled package managers.
+RUN apt-get update \
+ && apt-get upgrade -y --no-install-recommends \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
            /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
            /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-*
 
